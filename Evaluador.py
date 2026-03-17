@@ -74,18 +74,39 @@ def clasificarAutor(bloque):
     if match:
         nombre = match.group(0).replace("(", "")
     else:
-        return "Desconocido"
-    if re.match(snake_case, nombre):
+        return "desconocido"
+    if re.fullmatch(snake_case, nombre):
         return "snake"
-    elif re.match(camelCase, nombre):
+    elif re.fullmatch(camelCase, nombre):
         return "camel"
-    elif re.match(PascalCase, nombre):
+    elif re.fullmatch(PascalCase, nombre):
         return "pascal"
     else:
-        return "Desconocido"
+        return "desconocido"
 
-
+def guardarFunciones(funciones):
+    s = open("snake.txt", "w")
+    c = open("camel.txt", "w")
+    p = open("pascal.txt", "w")
+    d = open("desconocido.txt", "w")
+    for funcion in funciones:
+        autor = clasificarAutor(funcion)
+        if autor == "snake":
+            s.write(funcion + "\n")
+        elif autor == "camel":
+            c.write(funcion + "\n")
+        elif autor == "pascal":
+            p.write(funcion + "\n")
+        else: 
+            d.write(funcion + "\n")
+    s.close()
+    c.close()
+    p.close()
+    d.close()
+    
+    
 funciones = detectarFunciones()
+guardarFunciones(funciones)
 print("Cantidad de funciones:", len(funciones))
 for f in funciones:
     autor = clasificarAutor(f)
