@@ -30,7 +30,7 @@ condicion = r"\([a-zA-Z][a-zA-Z0-9]* (\+|-|/|\*|=|==|<|>) ([0-9]|true|false|\"[a
 estructura_control = r"(if|while) \([a-zA-Z][a-zA-Z0-9]* (\+|-|/|\*|=|==|<|>) ([0-9]|true|false|\"[a-zA-Z][a-zA-Z0-9]*\"|'[a-zA-Z]')\{"
 cierre_bloque = r"\}"
 declaracion_funcion = r"(int|bool|char|string|void)\s+[a-zA-Z_][A-Za-z0-9_]*\s*\(\)\s*\{"
-declaracion_variable = r"(int|bool|char|string|void) ([a-z]+(_[a-z]+)*|[a-z]+([A-Z][a-z]+)*|[A-Z][a-z]+([A-Z][a-z]+)*) (\+|-|/|\*|=|==|<|>) ([0-9]|true|false|\"[a-zA-Z][a-zA-Z0-9]*\"|'[a-zA-Z]\');"
+declaracion_variable = r"(int|bool)\s+[a-zA-Z_][a-zA-Z0-9_]*\s*="
 retorno = r"return ([a-z]+(_[a-z]+)*|[a-z]+([A-Z][a-z]+)*|[A-Z][a-z]+([A-Z][a-z]+)*)"
 comentario_one_line = r"//[a-zA-Z][a-zA-Z0-9]*"
 comentario_multi_line = r"/\*[a-zA-Z][a-zA-Z0-9]*\*/"
@@ -103,7 +103,15 @@ def guardarFunciones(funciones):
     c.close()
     p.close()
     d.close()
-    
+
+def contarVariables(bloque):
+    lineas = bloque.split("\n")
+    cont = 0
+    for linea in lineas:
+        linea_limpia = linea.strip()
+        if re.match(declaracion_variable, linea_limpia):
+            cont += 1
+    return cont 
     
 funciones = detectarFunciones()
 guardarFunciones(funciones)
@@ -111,6 +119,7 @@ print("Cantidad de funciones:", len(funciones))
 for f in funciones:
     autor = clasificarAutor(f)
     print("AUTOR:", autor)
+    print("Variables:", contarVariables(f))
     print("FUNCION DETECTADA:")
     print (f)
 
