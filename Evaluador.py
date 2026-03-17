@@ -2,9 +2,9 @@ import re
 #funcion para leer archivo
 def leerArchivo():
     f = open("programa.txt")
-    info = f.read()
+    archivo = f.read()
     f.close()
-    return info 
+    return archivo
 
 #regrex 
 #basicas
@@ -29,10 +29,44 @@ nombre_valido = r"([a-z]+(_[a-z]+)*|[a-z]+([A-Z][a-z]+)*|[A-Z][a-z]+([A-Z][a-z]+
 condicion = r"\([a-zA-Z][a-zA-Z0-9]* (\+|-|/|\*|=|==|<|>) ([0-9]|true|false|\"[a-zA-Z][a-zA-Z0-9]*\"|'[a-zA-Z]')\)"
 estructura_control = r"(if|while) \([a-zA-Z][a-zA-Z0-9]* (\+|-|/|\*|=|==|<|>) ([0-9]|true|false|\"[a-zA-Z][a-zA-Z0-9]*\"|'[a-zA-Z]')\{"
 cierre_bloque = r"\}"
-declaracion_funcion = r"(int|bool|char|string|void) ([a-z]+(_[a-z]+)*|[a-z]+([A-Z][a-z]+)*|[A-Z][a-z]+([A-Z][a-z]+)*)\(\)\{"
+declaracion_funcion = r"(int|bool|char|string|void)\s+[a-zA-Z_][A-Za-z0-9_]*\s*\(\)\s*\{"
 declaracion_variable = r"(int|bool|char|string|void) ([a-z]+(_[a-z]+)*|[a-z]+([A-Z][a-z]+)*|[A-Z][a-z]+([A-Z][a-z]+)*) (\+|-|/|\*|=|==|<|>) ([0-9]|true|false|\"[a-zA-Z][a-zA-Z0-9]*\"|'[a-zA-Z]\');"
 retorno = r"return ([a-z]+(_[a-z]+)*|[a-z]+([A-Z][a-z]+)*|[A-Z][a-z]+([A-Z][a-z]+)*)"
 comentario_one_line = r"//[a-zA-Z][a-zA-Z0-9]*"
 comentario_multi_line = r"/\*[a-zA-Z][a-zA-Z0-9]*\*/"
 
+def detectarFunciones():
+    archivo = leerArchivo()
+    lineas = archivo.split("\n")
+    lista_bloques = []
+    bloque_actual = ""
+    dentro_funcion = False
+    llaves = 0
+    nombre_funcion_actual = ""
+    for linea in lineas:
+        linea_limpia = linea.strip()
+        if not dentro_funcion and re.match(declaracion_funcion, linea_limpia):
+            dentro_funcion = True
+            bloque_actual = linea + "\n"
+            llaves = linea.count("{") - linea.count("}")
+            match = re.search("[a-zA-Z_][a-zA-Z0-9_]*\(", linea_limpia)
+            if match:
+                nombre_funcion_actual = match.group(0).replace("(", "")
+        elif dentro_funcion:
+            bloque_actual += linea + "\n"
+            llaves += linea.count("{") 
+            llaves -= linea.count("}")
+            if llaves == 0:
+                lista_bloques.append(bloque_actual)
+                bloque_actual = ""
+                dentro_funcion = False 
+                llaves = 0
+                nombre_funcion_actual = ""
+    if dentro_funcion:
+        lista_bloques.append(bloque_actual)
+        return lista_bloques
+
+
+
+        
 
