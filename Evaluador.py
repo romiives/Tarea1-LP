@@ -67,6 +67,31 @@ def detectarFunciones():
         return lista_bloques
 
 
+def clasificarAutor(bloque):
+    lineas = bloque.split("\n")
+    primera_linea = lineas[0].strip()
+    match = re.search("[a-zA-Z_][a-zA-Z0-9_]*\(", primera_linea)
+    if match:
+        nombre = match.group(0).replace("(", "")
+    else:
+        return "Desconocido"
+    if re.match(snake_case, nombre):
+        return "snake"
+    elif re.match(camelCase, nombre):
+        return "camel"
+    elif re.match(PascalCase, nombre):
+        return "pascal"
+    else:
+        return "Desconocido"
+
+
+funciones = detectarFunciones()
+print("Cantidad de funciones:", len(funciones))
+for f in funciones:
+    autor = clasificarAutor(f)
+    print("AUTOR:", autor)
+    print("FUNCION DETECTADA:")
+    print (f)
 
         
 
