@@ -112,15 +112,38 @@ def contarVariables(bloque):
         if re.match(declaracion_variable, linea_limpia):
             cont += 1
     return cont 
-    
+
+#arreglar funcion
+def detectarDiferenciasEstilo(bloque, autor):
+    lineas = bloque.split("\n")
+    diferencias = 0
+    for linea in lineas:
+        linea_limpia = linea.strip()
+        if re.match(declaracion_variable, linea_limpia):
+            match = re.search(r"(int|bool)\s+([a-zA-Z_][a-zA-Z0-9_]*)", linea_limpia)
+            if match:
+                nombre = match.group(2)
+                if autor == "snake":
+                    if not re.match(snake_case, nombre):
+                        diferencias = diferencias + 1
+                elif autor == "camel":
+                    if not re.match(camelCase, nombre):
+                        diferencias = diferencias +1
+                elif autor == "pascal":
+                    if not re.match(PascalCase, nombre):
+                        diferencias = diferencias + 1
+    return diferencias 
+
+                    
 funciones = detectarFunciones()
 guardarFunciones(funciones)
 print("Cantidad de funciones:", len(funciones))
 for f in funciones:
+    print("FUNCION DETECTADA:")
     autor = clasificarAutor(f)
     print("AUTOR:", autor)
     print("Variables:", contarVariables(f))
-    print("FUNCION DETECTADA:")
+    print("Diferencias:", detectarDiferenciasEstilo(f, autor))
     print (f)
 
         
