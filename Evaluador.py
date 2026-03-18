@@ -24,14 +24,14 @@ tipo_dato = r"(int|bool|char|string|void)"
 snake_case = r"[a-z]+(_[a-z]+)*"
 camelCase = r"[a-z]+([A-Z][a-z]+)*"
 PascalCase = r"[A-Z][a-z]+([A-Z][a-z]+)*"
-nombre_valido = r"([a-z]+(_[a-z]+)*|[a-z]+([A-Z][a-z]+)*|[A-Z][a-z]+([A-Z][a-z]+)*)"
+nombre_valido = r"(" + snake_case + r"|" + camelCase + r"|" + PascalCase + r")"
 #estructurasavanzadas
-condicion = r"\([a-zA-Z][a-zA-Z0-9]* (\+|-|/|\*|=|==|<|>) ([0-9]|true|false|\"[a-zA-Z][a-zA-Z0-9]*\"|'[a-zA-Z]')\)"
-estructura_control = r"(if|while) \([a-zA-Z][a-zA-Z0-9]* (\+|-|/|\*|=|==|<|>) ([0-9]|true|false|\"[a-zA-Z][a-zA-Z0-9]*\"|'[a-zA-Z]')\{"
+condicion = r"\(\s*" + nombre_valido + r"\s*" + operacion + r"\s*" + valor + r"\s*\)"
+estructura_control = r"(if|while)\s*"+ condicion + r"\s*\{"
 cierre_bloque = r"\}"
-declaracion_funcion = r"(int|bool|char|string|void)\s+[a-zA-Z_][A-Za-z0-9_]*\s*\(\)\s*\{"
-declaracion_variable = r"(int|bool)\s+[a-zA-Z_][a-zA-Z0-9_]*\s*="
-retorno = r"return ([a-z]+(_[a-z]+)*|[a-z]+([A-Z][a-z]+)*|[A-Z][a-z]+([A-Z][a-z]+)*)"
+declaracion_funcion = r"(int|bool|char|string|void)\s+" + nombre_valido + r"\s*\(\s*\)\s*\{"
+declaracion_variable = r"(int|bool|char|string)\s+[a-zA-Z_][a-zA-Z0-9_]*\s*=\s*"
+retorno = r"return\s+" + nombre_valido + r"\s*;" 
 comentario_one_line = r"//[a-zA-Z][a-zA-Z0-9]*"
 comentario_multi_line = r"/\*[a-zA-Z][a-zA-Z0-9]*\*/"
 
@@ -70,7 +70,7 @@ def detectarFunciones():
 def clasificarAutor(bloque):
     lineas = bloque.split("\n")
     primera_linea = lineas[0].strip()
-    match = re.search("[a-zA-Z_][a-zA-Z0-9_]*\(", primera_linea)
+    match = re.search(r"[a-zA-Z_][a-zA-Z0-9_]*\(", primera_linea)
     if match:
         nombre = match.group(0).replace("(", "")
     else:
@@ -113,7 +113,6 @@ def contarVariables(bloque):
             cont += 1
     return cont 
 
-#arreglar funcion
 def detectarDiferenciasEstilo(bloque, autor):
     lineas = bloque.split("\n")
     diferencias = 0
@@ -134,17 +133,39 @@ def detectarDiferenciasEstilo(bloque, autor):
                         diferencias = diferencias + 1
     return diferencias 
 
-                    
+def detectarErroresSintaxis(bloque):
+    lineas = bloque.split("\n")
+    errores = []
+    llaves = 0
+    for linea in lineas:
+        linea_limpia = linea.strip()
+        llaves += linea.count("{")
+        llaves -= linea.count("}")
+        if re.match(declaracion_variable, linea_limpia):
+            if not linea_limpia.endswith(";"):
+                errores.append("Falta ; en: " + linea_limpia)
+        if linea_limpia.startswith("return"):
+            if not linea_limpia.endswith(";"):
+                errores.append("Falta ; en return: " + linea_limpia)
+    if llaves > 0:
+        errores.append("Faltan llaves de cierre")
+    return errores
+ 
+ #reportefinal intmain                 
 funciones = detectarFunciones()
 guardarFunciones(funciones)
 print("Cantidad de funciones:", len(funciones))
-for f in funciones:
-    print("FUNCION DETECTADA:")
-    autor = clasificarAutor(f)
+for funcion in funciones:
+    autor = clasificarAutor(funcion)
+    variables = contarVariables(funcion)
+    diferencias = detectarDiferenciasEstilo(funcion, autor)
+    errores = detectarErroresSintaxis(funcion)
     print("AUTOR:", autor)
-    print("Variables:", contarVariables(f))
-    print("Diferencias:", detectarDiferenciasEstilo(f, autor))
-    print (f)
+    print("Variables:", contarVariables(funcion))
+    print("Diferencias:", detectarDiferenciasEstilo(funcion, autor))
+    print("Errores:", errores)
+    
+    
 
         
 
