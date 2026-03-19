@@ -150,20 +150,56 @@ def detectarErroresSintaxis(bloque):
     if llaves > 0:
         errores.append("Faltan llaves de cierre")
     return errores
- 
- #reportefinal intmain                 
+
+#funcion necesaria para reporte final
+def obtenerFuncion(bloque):
+    lineas = bloque.split("\n")
+    primera_linea = lineas[0]
+    match = re.search(r"[a-zA-Z_][a-zA-Z0-9_]*\s*\(", primera_linea)
+    if match:
+        nombre = match.group(0)
+        nombre = nombre.replace("(", "")
+        return nombre
+    return "desconocido"
+
+#reportefinal
+def generarReporte(funciones):
+    reporte = {
+        "snake": {"funciones": 0, "nombres": [], "variables":0, "diferencias": 0, "errores": 0, "detalle": []},
+        "camel": {"funciones": 0, "nombres": [], "variables":0, "diferencias": 0, "errores": 0, "detalle": []},
+        "pascal": {"funciones": 0, "nombres": [], "variables":0, "diferencias": 0, "errores": 0, "detalle": []},
+        "desconocido": {"funciones": 0, "nombres": [], "variables":0, "diferencias": 0, "errores": 0, "detalle": []}
+    }
+    for funcion in funciones:
+        autor = clasificarAutor(funcion)
+        nombre = obtenerFuncion(funcion)
+        variables = contarVariables(funcion)
+        diferencias = detectarDiferenciasEstilo(funcion, autor)
+        errores = detectarErroresSintaxis(funcion)
+        reporte[autor]["funciones"] += 1
+        reporte[autor]["nombres"].append(nombre)
+        reporte[autor]["variables"] += variables
+        reporte[autor]["diferencias"] += diferencias
+        reporte[autor]["errores"] += len(errores)
+        for error in errores:
+            reporte[autor]["detalle"].append(error)
+    print("REPORTE DE EVALUACIÓN DE PRACTICANTES")
+    for autor in reporte:
+        print("PRACTICANTE:", autor)
+        print("- Funciones creadas:", reporte[autor]["funciones"])
+        print("- Variables declaradas:", reporte[autor]["variables"])
+        print("- Diferencias de estilo:", reporte[autor]["diferencias"])
+        print("- Errores de sintaxis:", reporte[autor]["errores"])
+        print("- Error en:")
+        for error in reporte[autor]["detalle"]:
+            print("  *", error)
+        print("")
+   
+#intmain
 funciones = detectarFunciones()
 guardarFunciones(funciones)
-print("Cantidad de funciones:", len(funciones))
-for funcion in funciones:
-    autor = clasificarAutor(funcion)
-    variables = contarVariables(funcion)
-    diferencias = detectarDiferenciasEstilo(funcion, autor)
-    errores = detectarErroresSintaxis(funcion)
-    print("AUTOR:", autor)
-    print("Variables:", contarVariables(funcion))
-    print("Diferencias:", detectarDiferenciasEstilo(funcion, autor))
-    print("Errores:", errores)
+generarReporte(funciones)
+    
     
     
 
