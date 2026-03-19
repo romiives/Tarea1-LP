@@ -13,7 +13,7 @@ letra_min = r"[a-z]"
 letra_may = r"[A-Z]"
 letra = r"[a-zA-Z]"
 palabra = r"[a-zA-Z][a-zA-Z0-9]*"
-#tiposdedatosyoperaciones
+#tipos de datos y operaciones
 operacion = r"(\+|-|/|\*|=|==|<|>)"
 booleano = r"(true|false)"
 cadena_texto = r"\"[a-zA-Z][a-zA-Z][0-9]*\""
@@ -25,7 +25,7 @@ snake_case = r"[a-z]+(_[a-z]+)*"
 camelCase = r"[a-z]+([A-Z][a-z]+)*"
 PascalCase = r"[A-Z][a-z]+([A-Z][a-z]+)*"
 nombre_valido = r"(" + snake_case + r"|" + camelCase + r"|" + PascalCase + r")"
-#estructurasavanzadas
+#estructuras avanzadas
 condicion = r"\(\s*" + nombre_valido + r"\s*" + operacion + r"\s*" + valor + r"\s*\)"
 estructura_control = r"(if|while)\s*"+ condicion + r"\s*\{"
 cierre_bloque = r"\}"
@@ -35,6 +35,7 @@ retorno = r"return\s+" + nombre_valido + r"\s*;"
 comentario_one_line = r"//[a-zA-Z][a-zA-Z0-9]*"
 comentario_multi_line = r"/\*[a-zA-Z][a-zA-Z0-9]*\*/"
 
+#esta funcion busca las funciones (su estructura (bloques)) dentro del archivo y las guarda en una lista 
 def detectarFunciones():
     archivo = leerArchivo()
     lineas = archivo.split("\n")
@@ -66,7 +67,7 @@ def detectarFunciones():
         lista_bloques.append(bloque_actual)
         return lista_bloques
 
-
+#esta funcion revisa el nombre de la funcion y la clasifica en snake, camel o pascal
 def clasificarAutor(bloque):
     lineas = bloque.split("\n")
     primera_linea = lineas[0].strip()
@@ -74,16 +75,17 @@ def clasificarAutor(bloque):
     if match:
         nombre = match.group(0).replace("(", "")
     else:
-        return "desconocido"
+        return "Desconocido"
     if re.fullmatch(snake_case, nombre):
-        return "snake"
+        return "Snake"
     elif re.fullmatch(camelCase, nombre):
-        return "camel"
+        return "Camel"
     elif re.fullmatch(PascalCase, nombre):
-        return "pascal"
+        return "Pascal"
     else:
-        return "desconocido"
+        return "Desconocido"
 
+#esta funcion guarda las funciones en archivos (y a su vez crea los archivos) separados segun autor
 def guardarFunciones(funciones):
     s = open("snake.txt", "w")
     c = open("camel.txt", "w")
@@ -91,11 +93,11 @@ def guardarFunciones(funciones):
     d = open("desconocido.txt", "w")
     for funcion in funciones:
         autor = clasificarAutor(funcion)
-        if autor == "snake":
+        if autor == "Snake":
             s.write(funcion + "\n")
-        elif autor == "camel":
+        elif autor == "Camel":
             c.write(funcion + "\n")
-        elif autor == "pascal":
+        elif autor == "Pascal":
             p.write(funcion + "\n")
         else: 
             d.write(funcion + "\n")
@@ -104,6 +106,7 @@ def guardarFunciones(funciones):
     p.close()
     d.close()
 
+#esta funcion cuenta las variables declaradas que hay dentro de una funcion 
 def contarVariables(bloque):
     lineas = bloque.split("\n")
     cont = 0
@@ -113,6 +116,7 @@ def contarVariables(bloque):
             cont += 1
     return cont 
 
+#esta funcion revisa si el estilo del nombre de la variable no coincide con el estilo del autor y asi detecta diferencias 
 def detectarDiferenciasEstilo(bloque, autor):
     lineas = bloque.split("\n")
     diferencias = 0
@@ -122,17 +126,18 @@ def detectarDiferenciasEstilo(bloque, autor):
             match = re.search(r"(int|bool)\s+([a-zA-Z_][a-zA-Z0-9_]*)", linea_limpia)
             if match:
                 nombre = match.group(2)
-                if autor == "snake":
+                if autor == "Snake":
                     if not re.match(snake_case, nombre):
                         diferencias = diferencias + 1
-                elif autor == "camel":
+                elif autor == "Camel":
                     if not re.match(camelCase, nombre):
                         diferencias = diferencias +1
-                elif autor == "pascal":
+                elif autor == "Pascal":
                     if not re.match(PascalCase, nombre):
                         diferencias = diferencias + 1
     return diferencias 
 
+#esta funcion revisa los errores en la sintaxis al escribir una funcion, como un ; o llaves 
 def detectarErroresSintaxis(bloque):
     lineas = bloque.split("\n")
     errores = []
@@ -151,7 +156,7 @@ def detectarErroresSintaxis(bloque):
         errores.append("Faltan llaves de cierre")
     return errores
 
-#funcion necesaria para reporte final
+#esta funcion es necesaria para el reporte final, ya que sirve para identificar donde ocurre el error en "detalles"
 def obtenerFuncion(bloque):
     lineas = bloque.split("\n")
     primera_linea = lineas[0]
@@ -162,13 +167,13 @@ def obtenerFuncion(bloque):
         return nombre
     return "desconocido"
 
-#reportefinal
+#esta funcion arma el reporte final 
 def generarReporte(funciones):
     reporte = {
-        "snake": {"funciones": 0, "nombres": [], "variables":0, "diferencias": 0, "errores": 0, "detalle": []},
-        "camel": {"funciones": 0, "nombres": [], "variables":0, "diferencias": 0, "errores": 0, "detalle": []},
-        "pascal": {"funciones": 0, "nombres": [], "variables":0, "diferencias": 0, "errores": 0, "detalle": []},
-        "desconocido": {"funciones": 0, "nombres": [], "variables":0, "diferencias": 0, "errores": 0, "detalle": []}
+        "Snake": {"funciones": 0, "nombres": [], "variables":0, "diferencias": 0, "errores": 0, "detalle": []},
+        "Camel": {"funciones": 0, "nombres": [], "variables":0, "diferencias": 0, "errores": 0, "detalle": []},
+        "Pascal": {"funciones": 0, "nombres": [], "variables":0, "diferencias": 0, "errores": 0, "detalle": []},
+        "Desconocido": {"funciones": 0, "nombres": [], "variables":0, "diferencias": 0, "errores": 0, "detalle": []}
     }
     for funcion in funciones:
         autor = clasificarAutor(funcion)
@@ -185,17 +190,18 @@ def generarReporte(funciones):
             reporte[autor]["detalle"].append(error)
     print("REPORTE DE EVALUACIÓN DE PRACTICANTES")
     for autor in reporte:
+        if reporte[autor]["funciones"] == 0:
+            continue
         print("PRACTICANTE:", autor)
         print("- Funciones creadas:", reporte[autor]["funciones"])
         print("- Variables declaradas:", reporte[autor]["variables"])
         print("- Diferencias de estilo:", reporte[autor]["diferencias"])
         print("- Errores de sintaxis:", reporte[autor]["errores"])
-        print("- Error en:")
-        for error in reporte[autor]["detalle"]:
-            print("  *", error)
-        print("")
-   
-#intmain
+        if reporte[autor]["errores"] > 0:
+            for error in reporte[autor]["detalle"]:
+                print("- Error en:", error)
+                
+#int main para llamar las funciones 
 funciones = detectarFunciones()
 guardarFunciones(funciones)
 generarReporte(funciones)
