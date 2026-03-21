@@ -50,7 +50,7 @@ def detectarFunciones():
             dentro_funcion = True
             bloque_actual = linea + "\n"
             llaves = linea.count("{") - linea.count("}")
-            match = re.search("[a-zA-Z_][a-zA-Z0-9_]*\(", linea_limpia)
+            match = re.search(r"[a-zA-Z_][a-zA-Z0-9_]*\(", linea_limpia)
             if match:
                 nombre_funcion_actual = match.group(0).replace("(", "")
         elif dentro_funcion:
