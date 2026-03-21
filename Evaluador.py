@@ -65,7 +65,7 @@ def detectarFunciones():
                 nombre_funcion_actual = ""
     if dentro_funcion:
         lista_bloques.append(bloque_actual)
-        return lista_bloques
+    return lista_bloques
 
 #esta funcion revisa el nombre de la funcion y la clasifica en snake, camel o pascal
 def clasificarAutor(bloque):
