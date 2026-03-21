@@ -228,15 +228,15 @@ def generarReporte(funciones):
         reporte[autor]["errores"] += len(errores)
         for error in errores:
             reporte[autor]["detalle"].append(error)
-    print("REPORTE DE EVALUACIÓN DE PRACTICANTES")
+    print("=== REPORTE DE EVALUACIÓN DE PRACTICANTES ===")
     for autor in reporte:
         if reporte[autor]["funciones"] == 0:
             continue
         print("PRACTICANTE:", autor)
         print("- Funciones creadas:", reporte[autor]["funciones"])
         print("- Variables declaradas:", reporte[autor]["variables"])
-        print("- Diferencias de estilo:", reporte[autor]["diferencias"])
-        print("- Errores de sintaxis:", reporte[autor]["errores"])
+        print("- Diferencias de Estilo:", reporte[autor]["diferencias"])
+        print("- Errores de Sintaxis:", reporte[autor]["errores"])
         if reporte[autor]["errores"] > 0:
             for error in reporte[autor]["detalle"]:
                 print("- Error en:", error)
