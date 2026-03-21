@@ -29,7 +29,7 @@ nombre_valido = r"(" + snake_case + r"|" + camelCase + r"|" + PascalCase + r")"
 condicion = r"\(\s*" + nombre_valido + r"\s*" + operacion + r"\s*" + valor + r"\s*\)"
 estructura_control = r"(if|while)\s*"+ condicion + r"\s*\{"
 cierre_bloque = r"\}"
-declaracion_funcion = r"(int|bool|char|string|void)\s+" + nombre_valido + r"\s*\(\s*\)\s*\{"
+declaracion_funcion = r"(int|bool|char|string|void)\s+" + nombre_valido + r"\s*\(\s*\)"
 declaracion_variable = r"(int|bool|char|string)\s+[a-zA-Z_][a-zA-Z0-9_]*\s*=\s*"
 retorno = r"return\s+" + nombre_valido + r"\s*;" 
 comentario_one_line = r"//[a-zA-Z][a-zA-Z0-9]*"
@@ -46,36 +46,29 @@ def detectarFunciones():
     nombre_funcion_actual = ""
     for linea in lineas:
         linea_limpia = linea.strip()
-        if not dentro_funcion and re.match(declaracion_funcion, linea_limpia):
+        if not dentro_funcion and re.search(declaracion_funcion, linea_limpia):
             dentro_funcion = True
             bloque_actual = linea + "\n"
             llaves = linea.count("{") - linea.count("}")
-            match = re.search(r"[a-zA-Z_][a-zA-Z0-9_]*\(", linea_limpia)
+            match = re.search(r"[a-zA-Z_][a-zA-Z0-9_]*\s*\(", linea_limpia)
             if match:
-                nombre_funcion_actual = match.group(0).replace("(", "")
+                nombre_funcion_actual = match.group(0).replace("(", "").strip()
         elif dentro_funcion:
             bloque_actual += linea + "\n"
             llaves += linea.count("{") 
             llaves -= linea.count("}")
             if llaves == 0:
-                lista_bloques.append(bloque_actual)
+                lista_bloques.append((nombre_funcion_actual, bloque_actual))
                 bloque_actual = ""
                 dentro_funcion = False 
                 llaves = 0
                 nombre_funcion_actual = ""
     if dentro_funcion:
-        lista_bloques.append(bloque_actual)
+        lista_bloques.append((nombre_funcion_actual, bloque_actual))
     return lista_bloques
 
 #esta funcion revisa el nombre de la funcion y la clasifica en snake, camel o pascal
-def clasificarAutor(bloque):
-    lineas = bloque.split("\n")
-    primera_linea = lineas[0].strip()
-    match = re.search(r"[a-zA-Z_][a-zA-Z0-9_]*\(", primera_linea)
-    if match:
-        nombre = match.group(0).replace("(", "")
-    else:
-        return "Desconocido"
+def clasificarAutor(nombre):
     if re.fullmatch(snake_case, nombre):
         return "Snake"
     elif re.fullmatch(camelCase, nombre):
@@ -91,8 +84,8 @@ def guardarFunciones(funciones):
     c = open("camel.txt", "w")
     p = open("pascal.txt", "w")
     d = open("desconocido.txt", "w")
-    for funcion in funciones:
-        autor = clasificarAutor(funcion)
+    for nombre, funcion in funciones:
+        autor = clasificarAutor(nombre)
         if autor == "Snake":
             s.write(funcion + "\n")
         elif autor == "Camel":
@@ -175,8 +168,8 @@ def generarReporte(funciones):
         "Pascal": {"funciones": 0, "nombres": [], "variables":0, "diferencias": 0, "errores": 0, "detalle": []},
         "Desconocido": {"funciones": 0, "nombres": [], "variables":0, "diferencias": 0, "errores": 0, "detalle": []}
     }
-    for funcion in funciones:
-        autor = clasificarAutor(funcion)
+    for nombre, funcion in funciones:
+        autor = clasificarAutor(nombre)
         nombre = obtenerFuncion(funcion)
         variables = contarVariables(funcion)
         diferencias = detectarDiferenciasEstilo(funcion, autor)
