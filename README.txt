@@ -6,7 +6,7 @@ Mi programa analiza un archivo "programa.txt" el cual contiene funciones escrita
 
 ## Ejecución del código
 Quiero mecionar que en mi código se consideran los siguientes casos:
-- Agregue funciones como mi_Funcion, calcular para poder clasificarlas como "Desconocido"
+- Agregue funciones como "mi_Funcion" y "calcular" para poder clasificarlas como "Desconocido"
 - Las funciones que estan dentro de un bloque mal cerrado son detectadas y tratadas como nuevas funciones.
 - Se detectan errores de sintaxis como mencione en la descripción.
 - Se generan los siguientes archivos: snake.txt, camel.txt, pascal.txt y desconocido.txt

@@ -3,9 +3,9 @@ import re
 # ***
 # Parametro 1: None
 # ***
-# Tipo de Retorno: str
+# Tipo de Retorno: retorna un string con todo el contenido del archivo
 # *** 
-# función para leer un archivo. Abre el archivo, lee todo su contenido y lo devuelve como un string
+# función para leer un archivo. Abre el archivo, lee todo su contenido y lo devuelve como un string. El archivo se cierra para evitar perdida de recursos
 def leerArchivo():
     f = open("programa.txt")
     archivo = f.read()
@@ -44,9 +44,9 @@ comentario_multi_line = r"/\*[a-zA-Z][a-zA-Z0-9]*\*/"
 # ***
 # Parametro 1: None
 # ***
-# Tipo de Retorno: lista[tupla[str,str]]
+# Tipo de Retorno: lista[tupla[nombre_funcion, bloque_funcion]]
 # ***
-# Esta función busca las funciones (su estructura (bloques)) dentro del archivo y las guarda en una lista 
+# Esta función busca las funciones (su estructura (bloques)) línea por línea dentro del archivo utilizando una expresion regular para identificar declaraciones para luego guardarlas en una lista. 
 def detectarFunciones():
     archivo = leerArchivo()
     lineas = archivo.split("\n")
@@ -89,9 +89,9 @@ def detectarFunciones():
 # ***
 # Parametro 1: str (nombre de la función)
 # ***
-# Tipo de Retorno: str
+# Tipo de Retorno: str indicando el tipo 
 # ***
-# Esta función revisa el nombre de la función y la clasifica el autor en snake, camel o pascal
+# Esta función revisa el nombre de la función utilizando regrex para identificar el formato y la clasifica el autor en snake, camel o pascal, en caso de no coincidir con ninguna de las anteriores las manda a desconocido
 def clasificarAutor(nombre):
     if re.fullmatch(r"[a-z]+", nombre):
         return "Desconocido"
@@ -105,7 +105,7 @@ def clasificarAutor(nombre):
         return "Desconocido"
 
 # ***
-# Parametro 1: lista[tupla[str,str]] (funciones detectadas)
+# Parametro 1: lista[tupla[nombre_funcion, bloque_funcion]] (funciones detectadas)
 # ***
 # Tipo de Retorno: None
 # ***
@@ -133,9 +133,9 @@ def guardarFunciones(funciones):
 # ***
 # Parametro 1: str (bloque de la función considerada)
 # ***
-# Tipo de Retorno: int
+# Tipo de Retorno: int contador que contiene la cantidad de varibales declaradas
 # ***
-# Esta función cuenta las variables declaradas que hay dentro del bloque de una función 
+# Esta función cuenta las variables declaradas que hay dentro del bloque de una función, utilizando regrex para identificarlas.
 def contarVariables(bloque):
     lineas = bloque.split("\n")
     cont = 0
@@ -149,9 +149,9 @@ def contarVariables(bloque):
 # Parametro 1: str (bloque de la función)
 # Parametro 2: str (autor de la función)
 # ***
-# Tipo de Retorno: int
+# Tipo de Retorno: int diferencias
 # ***
-# Esta función revisa si el estilo del nombre de la variable no coincide con el estilo del autor y asi detecta diferencias 
+# Esta función revisa si el estilo del nombre de la variable no coincide con el estilo del autor y asi detectar diferencias con la utilización del regrex.
 def detectarDiferenciasEstilo(bloque, autor):
     lineas = bloque.split("\n")
     diferencias = 0
@@ -177,7 +177,7 @@ def detectarDiferenciasEstilo(bloque, autor):
 # ***
 # Parametro 1: str (bloque de una función)
 # ***
-# Tipo de Retorno: lista[str]
+# Tipo de Retorno: lista[errores]
 # ***
 # Esta función revisa los errores en la sintaxis al escribir una función, como un falta de un ; o llaves 
 def detectarErroresSintaxis(bloque):
