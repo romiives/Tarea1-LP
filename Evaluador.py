@@ -27,15 +27,15 @@ caracter = r"\'[a-zA-Z]\'"
 valor = r"(?:[0-9]|true|false|\"(?:[a-z]|[A-Z]|[0-9])+\"|'(?:[a-z]|[A-Z])')"
 tipo_dato = r"(int|bool|char|string|void)"
 # Estilos
-snake_case = r"[a-z]+(_[a-z]+)*"
-camelCase = r"[a-z]+([A-Z][a-z]+)*"
-PascalCase = r"[A-Z][a-z]+([A-Z][a-z]+)*"
+snake_case = r"^[a-z]+_[a-z]+(?:_[a-z]+)*$"
+camelCase = r"^[a-z]+(?:[A-Z][a-z]+)*$"
+PascalCase = r"^[A-Z][a-z]+(?:[A-Z][a-z]+)*$"
 nombre_valido = r"(" + snake_case + r"|" + camelCase + r"|" + PascalCase + r")"
 # Estructuras Avanzadas
 condicion = r"\(\s*" + nombre_valido + r"\s*" + operacion + r"\s*" + valor + r"\s*\)"
 estructura_control = r"(if|while)\s*"+ condicion + r"\s*\{"
 cierre_bloque = r"\}"
-declaracion_funcion = r"(int|bool|char|string|void)\s+" + nombre_valido + r"\s*\(\s*\)"
+declaracion_funcion = r"(int|bool|char|string|void)\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(\s*\)\s*\{"
 declaracion_variable = r"(int|bool|char|string)\s+(?:[a-z]|[A-Z]|_)(?:[a-z]|[A-Z]|[0-9]|_)*\s*=\s*"
 retorno = r"return\s+" + nombre_valido + r"\s*;" 
 comentario_one_line = r"//[a-zA-Z][a-zA-Z0-9]*"
@@ -61,19 +61,27 @@ def detectarFunciones():
             dentro_funcion = True
             bloque_actual = linea + "\n"
             llaves = linea.count("{") - linea.count("}")
-            match = re.search(r"[a-zA-Z_][a-zA-Z0-9_]*\s*\(", linea_limpia)
+            match = re.search(declaracion_funcion, linea_limpia)
             if match:
-                nombre_funcion_actual = match.group(0).replace("(", "").strip()
+                nombre_funcion_actual = match.group(2)
         elif dentro_funcion:
-            bloque_actual += linea + "\n"
-            llaves += linea.count("{") 
-            llaves -= linea.count("}")
-            if llaves == 0:
+            if re.search(declaracion_funcion, linea_limpia):
                 lista_bloques.append((nombre_funcion_actual, bloque_actual))
-                bloque_actual = ""
-                dentro_funcion = False 
-                llaves = 0
-                nombre_funcion_actual = ""
+                bloque_actual = linea + "\n"
+                llaves = linea.count("{") - linea.count("}")
+                match = re.search(declaracion_funcion, linea_limpia)
+                if match:
+                    nombre_funcion_actual = match.group(2)
+            else:
+                bloque_actual += linea + "\n"
+                llaves += linea.count("{") 
+                llaves -= linea.count("}")
+                if llaves == 0:
+                    lista_bloques.append((nombre_funcion_actual, bloque_actual))
+                    bloque_actual = ""
+                    dentro_funcion = False 
+                    llaves = 0
+                    nombre_funcion_actual = ""
     if dentro_funcion:
         lista_bloques.append((nombre_funcion_actual, bloque_actual))
     return lista_bloques
@@ -85,7 +93,9 @@ def detectarFunciones():
 # ***
 # Esta función revisa el nombre de la función y la clasifica el autor en snake, camel o pascal
 def clasificarAutor(nombre):
-    if re.fullmatch(snake_case, nombre):
+    if re.fullmatch(r"[a-z]+", nombre):
+        return "Desconocido"
+    elif re.fullmatch(snake_case, nombre):
         return "Snake"
     elif re.fullmatch(camelCase, nombre):
         return "Camel"
@@ -148,17 +158,19 @@ def detectarDiferenciasEstilo(bloque, autor):
     for linea in lineas:
         linea_limpia = linea.strip()
         if re.match(declaracion_variable, linea_limpia):
-            match = re.search(r"(int|bool)\s+([a-zA-Z_][a-zA-Z0-9_]*)", linea_limpia)
-            if match:
-                nombre = match.group(2)
+            nombre_partes = linea_limpia.split()
+            if len(nombre_partes) >= 2:
+                nombre = nombre_partes[1]
+                nombre = nombre.split("(")[0]
+                nombre = nombre.replace(";", "").replace("=", "").strip()
                 if autor == "Snake":
-                    if not re.match(snake_case, nombre):
+                    if not re.fullmatch(snake_case, nombre):
                         diferencias = diferencias + 1
                 elif autor == "Camel":
-                    if not re.match(camelCase, nombre):
+                    if not re.fullmatch(camelCase, nombre):
                         diferencias = diferencias +1
                 elif autor == "Pascal":
-                    if not re.match(PascalCase, nombre):
+                    if not re.fullmatch(PascalCase, nombre):
                         diferencias = diferencias + 1
     return diferencias 
 
@@ -178,12 +190,12 @@ def detectarErroresSintaxis(bloque):
         llaves -= linea.count("}")
         if re.match(declaracion_variable, linea_limpia):
             if not linea_limpia.endswith(";"):
-                errores.append("Falta ; en: " + linea_limpia)
-        if linea_limpia.startswith("return"):
+                errores.append("Falta ';' en la línea '" + linea_limpia + "'")
+        if re.match(retorno, linea_limpia):
             if not linea_limpia.endswith(";"):
-                errores.append("Falta ; en return: " + linea_limpia)
+                errores.append("Falta ';' en la línea '" + linea_limpia + "'")
     if llaves > 0:
-        errores.append("Faltan llaves de cierre")
+        errores.append("Bloque sin cerrar. Faltan " + str(llaves) + " llaves '}' de cierre.")
     return errores
 
 # ***
@@ -195,11 +207,9 @@ def detectarErroresSintaxis(bloque):
 def obtenerFuncion(bloque):
     lineas = bloque.split("\n")
     primera_linea = lineas[0]
-    match = re.search(r"[a-zA-Z_][a-zA-Z0-9_]*\s*\(", primera_linea)
+    match = re.search(r"(int|bool|char|string|void)\s+([a-zA-Z_][a-zA-Z0-9_]*)", primera_linea)
     if match:
-        nombre = match.group(0)
-        nombre = nombre.replace("(", "")
-        return nombre
+        return match.group(2)
     return "desconocido"
 
 # ***
@@ -207,7 +217,7 @@ def obtenerFuncion(bloque):
 # ***
 # Tipo de Retorno: None
 # ***
-# Esta función arma el reporte final para imprimirlo por pantalla mostrando por practicante: cantidad de funciones, variables declaradas, diferencias de estilo y errores de sintaxis 
+# Esta función arma el reporte final para imprimirlo por pantalla siguiendo el formato que pedía la tarea y mostrando por practicante: cantidad de funciones, variables declaradas, diferencias de estilo y errores de sintaxis 
 def generarReporte(funciones):
     reporte = {
         "Snake": {"funciones": 0, "nombres": [], "variables":0, "diferencias": 0, "errores": 0, "detalle": []},
@@ -217,7 +227,6 @@ def generarReporte(funciones):
     }
     for nombre, funcion in funciones:
         autor = clasificarAutor(nombre)
-        nombre = obtenerFuncion(funcion)
         variables = contarVariables(funcion)
         diferencias = detectarDiferenciasEstilo(funcion, autor)
         errores = detectarErroresSintaxis(funcion)
@@ -227,20 +236,20 @@ def generarReporte(funciones):
         reporte[autor]["diferencias"] += diferencias
         reporte[autor]["errores"] += len(errores)
         for error in errores:
-            reporte[autor]["detalle"].append(error)
-    print("=== REPORTE DE EVALUACIÓN DE PRACTICANTES ===")
+            reporte[autor]["detalle"].append(nombre + ": " + error)
+    print("=== REPORTE DE EVALUACIÓN DE PRACTICANTES ===\n")
     for autor in reporte:
         if reporte[autor]["funciones"] == 0:
             continue
         print("PRACTICANTE:", autor)
-        print("- Funciones creadas:", reporte[autor]["funciones"])
+        print("- Funciones creadas:", reporte[autor]["funciones"], "(" + ", ".join(reporte[autor]["nombres"]) + ")")
         print("- Variables declaradas:", reporte[autor]["variables"])
         print("- Diferencias de Estilo:", reporte[autor]["diferencias"])
         print("- Errores de Sintaxis:", reporte[autor]["errores"])
         if reporte[autor]["errores"] > 0:
             for error in reporte[autor]["detalle"]:
-                print("- Error en:", error)
-                
+                print("- Error en '" + error + "'")
+        print()       
 # int main para llamar las funciones 
 funciones = detectarFunciones()
 guardarFunciones(funciones)
